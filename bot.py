@@ -1,10 +1,12 @@
+import subprocess
 import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, PicklePersistence, Filters
 
 
 class Bot:
-    def __init__(self, token, admin):
+    def __init__(self, token, admin, device):
         self.admin = admin
+        self.device = device
         self.persistence = PicklePersistence(filename='data.pickle')
         self.updater = Updater(
             token=token, use_context=True, persistence=self.persistence)
@@ -93,10 +95,13 @@ class Bot:
         if doc is None:
             return
         f = doc.get_file()
-        f.download(custom_path=f"/tmp/{update.effective_user.id}.pdf")
+
+        with subprocess.Popen(["lp", "-d", self.device], stdin=subprocess.PIPE) as proc:
+            f.download(out=proc.stdin)
 
     def start(self):
         self.updater.start_polling()
 
 
-Bot(os.getenv("TELEGRAM_TOKEN"), int(os.getenv("TELEGRAM_ADMIN"))).start()
+Bot(os.getenv("TELEGRAM_TOKEN"), int(os.getenv("TELEGRAM_ADMIN")),
+    os.getenv("CUPS_DEVICE")).start()
