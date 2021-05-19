@@ -96,8 +96,29 @@ class Bot:
             return
         f = doc.get_file()
 
+        if f.file_size >= 20*1024*1024:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text="Unfortunately, Telegram bots cannot receive files over 20MiB.")
+            return
+
+        context.bot.send_message(
+            chat_id=update.effective_chat.id, text="Attempting to print...")
+
         with subprocess.Popen(["lp", "-d", self.device], stdin=subprocess.PIPE) as proc:
             f.download(out=proc.stdin)
+            try:
+                proc.communicate(timeout=30)
+            except subprocess.TimeoutExpired:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text="30 second timeout reached. Killing the process.")
+                proc.kill()
+                proc.communicate()
+            if proc.returncode == 0:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text="Job sent to the printer.")
+            else:
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, text=f"`lp` returned an error: {proc.returncode}.")
 
     def start(self):
         self.updater.start_polling()
