@@ -28,3 +28,6 @@ Print PDFs remotely by sending them to a Telegram bot.
 * Only PDFs are supported.
 * Max 20MiB files. (Telegram API limitation)
 * Might contain various fun vulnerabilities. I am executing a shell command and piping the PDF to it's stdin. I am not using user input for the actual command, but who knows. Check the code if you want, it's not that long.
+
+## Credits
+Idea: [Powder-phun](https://www.youtube.com/channel/UCmKhkMZDdt3G5l_s_K5zk5A)
