@@ -1,5 +1,5 @@
 import os
-from telegram.ext import Updater, CommandHandler, PicklePersistence
+from telegram.ext import Updater, CommandHandler, MessageHandler, PicklePersistence, Filters
 
 
 class Bot:
@@ -12,6 +12,9 @@ class Bot:
         self.dispatcher.add_handler(CommandHandler('start', self.cmd_start))
         self.dispatcher.add_handler(CommandHandler('add', self.cmd_add))
         self.dispatcher.add_handler(CommandHandler('deny', self.cmd_deny))
+
+        self.dispatcher.add_handler(MessageHandler(
+            Filters.document.pdf, self.on_message))
 
     def ensure_bot_data(self, context):
         if "allowed" not in context.bot_data:
@@ -45,6 +48,10 @@ class Bot:
             chat_id=update.effective_chat.id, text=message)
 
     def cmd_add(self, update, context):
+        if not self.is_admin(update.effective_user, context):
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text="You are not an admin.")
+            return
         argv = update.effective_message.text.split(" ")
         if len(argv) != 2:
             context.bot.send_message(
@@ -59,6 +66,10 @@ class Bot:
                 chat_id=update.effective_chat.id, text="Provided user ID is invalid.")
 
     def cmd_deny(self, update, context):
+        if not self.is_admin(update.effective_user, context):
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text="You are not an admin.")
+            return
         argv = update.effective_message.text.split(" ")
         if len(argv) != 2:
             context.bot.send_message(
@@ -71,6 +82,18 @@ class Bot:
         except ValueError:
             context.bot.send_message(
                 chat_id=update.effective_chat.id, text="Provided user ID is invalid.")
+
+    def on_message(self, update, context):
+        if not self.is_allowed(update.effective_user, context):
+            message = f"You are not allowed to print. Ask the admin to add you. Your ID is: {update.effective_user.id}."
+            context.bot.send_message(
+                chat_id=update.effective_chat.id, text=message)
+            return
+        doc = update.effective_message.document
+        if doc is None:
+            return
+        f = doc.get_file()
+        f.download(custom_path=f"/tmp/{update.effective_user.id}.pdf")
 
     def start(self):
         self.updater.start_polling()
