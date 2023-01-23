@@ -8,7 +8,7 @@ Print PDFs remotely by sending them to a Telegram bot.
   [python-telegram-bot](https://github.com/python-telegram-bot/python-telegram-bot)
   and Python 3.
 * Create a Telegram bot by messaging [@BotFather](https://t.me/BotFather) on Telegram. Save the token somewhere safe, we'll need it.
-* Using the command `lpstat -e`, figure out the name of your browser.
+* Using the command `lpstat -e`, figure out the name of your printer.
 * Start the bot with three environment variables:
   ```
   TELEGRAM_TOKEN="bot token from earlier" \
